@@ -36,38 +36,14 @@ class Money
       def parse(input, currency = nil)
         i = input.to_s.strip
 
-        # raise Money::Currency.table.collect{|c| c[1][:symbol]}.inspect
-
-        # Check the first character for a currency symbol, alternatively get it
-        # from the stated currency string
-        c = if Money.assume_from_symbol && i =~ /^(\$|€|£)/
-          case i
-          when /^\$/ then "USD"
-          when /^€/ then "EUR"
-          when /^£/ then "GBP"
-          end
-        else
-          i[/[A-Z]{2,3}/]
-        end
-
-        # check that currency passed and embedded currency are the same,
-        # and negotiate the final currency
-        if currency.nil? and c.nil?
-          currency = Money.default_currency
-        elsif currency.nil?
-          currency = c
-        elsif c.nil?
-          currency = currency
-        elsif currency != c
-          # TODO: ParseError
-          raise ArgumentError, "Mismatching Currencies"
-        end
+        currency = negotiate_currency(currency, implied_currency(i))
         currency = Money::Currency.wrap(currency)
 
         fractional = extract_cents(i, currency)
         new(fractional, currency)
       end
-
+      
+      
       # Converts a String into a Money object treating the +value+
       # as amount and converting to fractional unit,
       # according to +currency+ subunit property,
@@ -364,6 +340,35 @@ class Money
 
         # if negative, multiply by -1; otherwise, return positive cents
         negative ? cents * -1 : cents
+      end
+      
+      # Check the first character for a currency symbol, alternatively get it
+      # from the stated currency string
+      def implied_currency(input)
+        if Money.assume_from_symbol && input =~ /^(\$|€|£)/
+          case input
+          when /^\$/ then "USD"
+          when /^€/ then "EUR"
+          when /^£/ then "GBP"
+          end
+        else
+          input[/[A-Z]{2,3}/]
+        end
+      end
+      
+      # check that currency passed and embedded currency are the same,
+      # and negotiate the final currency
+      def negotiate_currency(currency, c)
+        if currency.nil? and c.nil?
+          currency = Money.default_currency
+        elsif currency.nil?
+          c
+        elsif c.nil? || currency == c
+          currency
+        else
+          # TODO: ParseError
+          raise ArgumentError, "Mismatching Currencies"
+        end
       end
     end
   end
