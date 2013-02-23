@@ -42,8 +42,8 @@ class String
   #
   # @see Money.from_string
   #
-  def to_money(currency = nil)
-    Money.parse(self, currency)
+  def to_money(*currency_and_locale)
+    Money.parse(self, *currency_and_locale)
   end
 
   # Converts the current string into a +Currency+ object.

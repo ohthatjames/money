@@ -11,15 +11,15 @@ describe Money, "parsing" do
     it "parses european-formatted inputs under 10EUR" do
       five_ninety_five = Money.new(595, 'EUR')
 
-      Money.parse('EUR 5,95').should    == five_ninety_five
+      Money.parse('EUR 5,95', "DE").should    == five_ninety_five
       #TODO: try and handle these
       #Money.parse('€5,95').should       == five_ninety_five
       #Money.parse('&#036;5.95').should  == five_ninety_five
     end
 
     it "parses european-formatted inputs with multiple thousands-seperators" do
-      Money.parse('EUR 1.234.567,89').should     == Money.new(123456789, 'EUR')
-      Money.parse('EUR 1.111.234.567,89').should == Money.new(111123456789, 'EUR')
+      Money.parse('EUR 1.234.567,89', "DE").should     == Money.new(123456789, 'EUR', "DE")
+      Money.parse('EUR 1.111.234.567,89', "DE").should == Money.new(111123456789, 'EUR', "DE")
     end
 
     describe 'currency assumption' do
@@ -102,7 +102,7 @@ describe Money, "parsing" do
     end
 
     it "parses correctly strings with exactly 3 decimal digits" do
-      Money.parse("6,534", "EUR").should == Money.new(653, "EUR")
+      Money.parse("6,534", "EUR", "DE").should == Money.new(653, "EUR", "DE")
     end
 
     context "custom currencies with 4 decimal places" do
@@ -114,10 +114,10 @@ describe Money, "parsing" do
       # String#to_money(Currency) is equivalent to Money.parse(String, Currency)
       it "parses strings respecting subunit to unit, decimal and thousands separator" do
         "$0.4".to_money("BAR").should == Money.new(4000, "BAR")
-        "€0,4".to_money("EU4").should == Money.new(4000, "EU4")
+        "€0,4".to_money("EU4", "DE").should == Money.new(4000, "EU4")
 
         "$0.04".to_money("BAR").should == Money.new(400, "BAR")
-        "€0,04".to_money("EU4").should == Money.new(400, "EU4")
+        "€0,04".to_money("EU4", "DE").should == Money.new(400, "EU4")
 
         "$0.004".to_money("BAR").should == Money.new(40, "BAR")
         "€0,004".to_money("EU4").should == Money.new(40, "EU4")
@@ -296,7 +296,7 @@ describe Money, "parsing" do
 
   describe ".extract_cents" do
     it "correctly treats pipe marks '|' in input (regression test)" do
-      Money.extract_cents('100|0').should == Money.extract_cents('100!0')
+      Money.extract_cents('100|0', Money.default_currency, Money::Locale.default).should == Money.extract_cents('100!0', Money.default_currency, Money::Locale.default)
     end
   end
 

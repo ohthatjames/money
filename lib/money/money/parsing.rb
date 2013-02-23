@@ -33,16 +33,18 @@ class Money
       #
       # @see Money.from_string
       #
-      def parse(input, currency = nil)
+      def parse(input, *currency_and_locale)
+        currency, locale = process_currency_and_locale(currency_and_locale)
         i = input.to_s.strip
 
         currency = negotiate_currency(currency, implied_currency(i))
         currency = Money::Currency.wrap(currency)
 
-        fractional = extract_cents(i, currency)
+        locale = Money::Locale.wrap(locale)
+
+        fractional = extract_cents(i, currency, locale)
         new(fractional, currency)
       end
-      
       
       # Converts a String into a Money object treating the +value+
       # as amount and converting to fractional unit,
@@ -213,7 +215,7 @@ class Money
       #
       # @return [Integer]
       #
-      def extract_cents(input, currency = Money.default_currency)
+      def extract_cents(input, currency, locale)
         # remove anything that's not a number, potential thousands_separator, or minus sign
         num = input.gsub(/[^\d.,'-]/, '')
 
@@ -236,90 +238,11 @@ class Money
         #save it from being mis-interpreted as a decimal.
         num.chop! if num.match(/[\.|,]$/)
 
-          # gather all decimal_marks within the result number
-          used_decimal_marks = num.scan(/[^\d]/)
-
-          # determine the number of unique decimal_marks within the number
-          #
-          # e.g.
-          # $1,234,567.89 would return 2 (, and .)
-          # $125,00 would return 1
-          # $199 would return 0
-          # $1 234,567.89 would raise an error (decimal_marks are space, comma, and period)
-          case used_decimal_marks.uniq.length
-            # no decimal_mark or thousands_separator; major (dollars) is the number, and minor (cents) is 0
-          when 0 then major, minor = num, 0
-
-            # two decimal_marks, so we know the last item in this array is the
-            # major/minor thousands_separator and the rest are decimal_marks
-          when 2
-            decimal_mark, thousands_separator = used_decimal_marks.uniq
-            # remove all decimal_marks, split on the thousands_separator
-            major, minor = num.gsub(decimal_mark, '').split(thousands_separator)
-            min = 0 unless min
-          when 1
-            # we can't determine if the comma or period is supposed to be a decimal_mark or a thousands_separator
-            # e.g.
-            # 1,00 - comma is a thousands_separator
-            # 1.000 - period is a thousands_separator
-            # 1,000 - comma is a decimal_mark
-            # 1,000,000 - comma is a decimal_mark
-            # 10000,00 - comma is a thousands_separator
-            # 1000,000 - comma is a thousands_separator
-
-            # assign first decimal_mark for reusability
-            decimal_mark = used_decimal_marks.first
-
-            # When we have identified the decimal mark character
-            if decimal_char == decimal_mark
-              major, minor = num.split(decimal_char)
-
-            else
-              # decimal_mark is used as a decimal_mark when there are multiple instances, always
-              if num.scan(decimal_mark).length > 1 # multiple matches; treat as decimal_mark
-                major, minor = num.gsub(decimal_mark, ''), 0
-              else
-                # ex: 1,000 - 1.0000 - 10001.000
-                # split number into possible major (dollars) and minor (cents) values
-                possible_major, possible_minor = num.split(decimal_mark)
-                possible_major ||= "0"
-                possible_minor ||= "00"
-
-                # if the minor (cents) length isn't 3, assign major/minor from the possibles
-                # e.g.
-                #   1,00 => 1.00
-                #   1.0000 => 1.00
-                #   1.2 => 1.20
-                if possible_minor.length != 3 # thousands_separator
-                  major, minor = possible_major, possible_minor
-                else
-                  # minor length is three
-                  # let's try to figure out intent of the thousands_separator
-
-                  # the major length is greater than three, which means
-                  # the comma or period is used as a thousands_separator
-                  # e.g.
-                  #   1000,000
-                  #   100000,000
-                  if possible_major.length > 3
-                    major, minor = possible_major, possible_minor
-                  else
-                    # number is in format ###{sep}### or ##{sep}### or #{sep}###
-                    # handle as , is sep, . is thousands_separator
-                    if decimal_mark == '.'
-                      major, minor = possible_major, possible_minor
-                    else
-                      major, minor = "#{possible_major}#{possible_minor}", 0
-                    end
-                  end
-                end
-              end
-            end
-          else
-            # TODO: ParseError
-            raise ArgumentError, "Invalid currency amount"
-          end
-
+        parts = num.gsub(locale.thousands_separator, '').split(locale.decimal_separator)
+        raise "Too many parts " if parts.size > 2
+        major, minor = parts
+        minor ||= 0
+        
         # build the string based on major/minor since decimal_mark/thousands_separator have been removed
         # avoiding floating point arithmetic here to ensure accuracy
         cents = (major.to_i * currency.subunit_to_unit)
@@ -368,6 +291,25 @@ class Money
         else
           # TODO: ParseError
           raise ArgumentError, "Mismatching Currencies"
+        end
+      end
+      
+      def process_currency_and_locale(currency_and_locale)
+        case currency_and_locale.size
+        when 0
+          [nil, nil]
+        when 1
+          if currency_and_locale.first.nil?
+            [nil, nil]
+          elsif currency_and_locale.first.is_a?(Currency) || currency_and_locale.first.size == 3
+            currency_and_locale + [nil]
+          else
+            [nil] + currency_and_locale
+          end
+        when 2
+          currency_and_locale
+        else
+          raise ArgumentError "Too many arguments"
         end
       end
     end
