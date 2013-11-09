@@ -1,5 +1,6 @@
 $load_money_core_extensions = false
 require "spec_helper"
+require "money/core_extensions"
 
 describe Money, "core extensions" do
 
