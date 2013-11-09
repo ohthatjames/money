@@ -1,5 +1,8 @@
 $LOAD_PATH.unshift File.dirname(__FILE__)
 require 'rspec'
+
+$load_money_core_extensions = false unless defined?($load_money_core_extensions)
+
 require 'money'
 require 'support/default_currency_helper'
 

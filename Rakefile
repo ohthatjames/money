@@ -17,8 +17,18 @@ task :test => :spec
 
 require 'rspec/core/rake_task'
 
-RSpec::Core::RakeTask.new
+namespace "spec" do
+  RSpec::Core::RakeTask.new("core") do |t|
 
+  end
+
+  RSpec::Core::RakeTask.new("extensions") do |t|
+    t.pattern    = "spec/core_extensions_spec.rb"
+    t.rspec_opts = "-r money/core_extensions"
+  end
+end
+
+task :spec => ["spec:core", "spec:extensions"]
 
 require 'yard'
 
