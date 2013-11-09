@@ -488,7 +488,7 @@ describe Money, "formatting" do
     end
 
     it "maintains floating point precision" do
-      "0.01".to_money("USD").format(:symbol => false).should == "0.01"
+      Money.parse("0.01", "USD").format(:symbol => false).should == "0.01"
     end
 
   end

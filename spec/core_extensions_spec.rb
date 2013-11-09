@@ -157,4 +157,57 @@ describe Money, "core extensions" do
     end
   end
 
+  context "given the same inputs to .parse and .from_*" do
+    it "gives the same results" do
+      4.635.to_money.should == "4.635".to_money
+    end
+  end
+
+  context "comparisons on core extensions" do
+    describe "#==" do
+      it "can be used to compare with a String money value" do
+        Money.new(1_00, "USD").eql?("1.00").should be true
+        Money.new(1_00, "USD").eql?("2.00").should be false
+        Money.new(1_00, "GBP").eql?("1.00").should be false
+      end
+
+      it "can be used to compare with a Numeric money value" do
+        Money.new(1_00, "USD").eql?(1).should be true
+        Money.new(1_57, "USD").eql?(1.57).should be true
+        Money.new(1_00, "USD").eql?(2).should be false
+        Money.new(1_00, "GBP").eql?(1).should be false
+      end
+    end
+
+    describe "#<=>" do
+      it "can be used to compare with a String money value when Money object is in default currency" do
+        (Money.new(1_00) <=> "1.00").should == 0
+        (Money.new(1_00) <=> ".99").should > 0
+        (Money.new(1_00) <=> "2.00").should < 0
+      end
+
+      it "can be used to compare with a String money value when Money object is not in default currency if String evaluates to zero" do
+        expect { Money.new(1_00, "EUR") <=> "1.00" }.to raise_error(Money::Bank::UnknownRate)
+
+        (Money.new(1_00, "EUR") <=> "0.00").should > 0
+        (Money.new(0_00, "EUR") <=> "0.00").should == 0
+        (Money.new(-1_00, "EUR") <=> "0.00").should < 0
+      end
+
+      it "can be used to compare with a Numeric money value when Money object is in default currency" do
+        (Money.new(1_00) <=> 1).should == 0
+        (Money.new(1_00) <=> 0.99).should > 0
+        (Money.new(1_00) <=> 2.00).should < 0
+      end
+
+      it "can be used to compare with a Numeric money value when Money object is not in default currency if String evaluates to zero" do
+        expect { Money.new(1_00, "EUR") <=> 1 }.to raise_error(Money::Bank::UnknownRate)
+
+        (Money.new(1_00, "EUR") <=> 0).should > 0
+        (Money.new(0_00, "EUR") <=> 0).should == 0
+        (Money.new(-1_00, "EUR") <=> 0).should < 0
+      end
+    end
+  end
+
 end

@@ -24,10 +24,11 @@ class Money
     #   Money.new(100) == Money.new(101) #=> false
     #   Money.new(100) == Money.new(100) #=> true
     def ==(other_money)
-      if other_money.respond_to?(:to_money)
-        Money.deprecate "as of Money 6.1.0 you must `require 'money/core_extensions'` to compare Money to core classes." unless other_money.is_a? Money
-        other_money = other_money.to_money
+      if other_money.is_a?(Money)
         fractional == other_money.fractional && currency == other_money.currency
+      elsif other_money.respond_to?(:to_money)
+        Money.deprecate "as of Money 6.1.0 you must `require 'money/core_extensions'` to compare Money to core classes." unless other_money.is_a? Money
+        self == other_money.to_money
       else
         false
       end
@@ -45,14 +46,15 @@ class Money
     end
 
     def <=>(other_money)
-      if other_money.respond_to?(:to_money)
-        Money.deprecate "as of Money 6.1.0 you must `require 'money/core_extensions'` to compare Money to core classes." unless other_money.is_a? Money
-        other_money = other_money.to_money
+      if other_money.is_a?(Money)
         if fractional == 0 || other_money.fractional == 0 || currency == other_money.currency
           fractional <=> other_money.fractional
         else
           fractional <=> other_money.exchange_to(currency).fractional
         end
+      elsif other_money.respond_to?(:to_money)
+        Money.deprecate "as of Money 6.1.0 you must `require 'money/core_extensions'` to compare Money to core classes." unless other_money.is_a? Money
+        self <=> other_money.to_money
       else
         raise ArgumentError, "Comparison of #{self.class} with #{other_money.inspect} failed"
       end

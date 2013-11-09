@@ -190,13 +190,6 @@ describe Money do
       Money.new_with_amount(1).fractional.should == 1_00
     end
 
-    it "stores fractional as an integer regardless of what is passed into the constructor" do
-      [ Money.new(100), 1.to_money, 1.00.to_money, BigDecimal('1.00').to_money ].each do |m|
-        m.fractional.should == 100
-        m.fractional.should be_a(Fixnum)
-      end
-    end
-    
     context "loading a serialized Money via YAML" do
 
       let(:serialized) { <<YAML
@@ -272,13 +265,6 @@ YAML
         Money.new(1_00).fractional.should == BigDecimal("100")
         Money.new_with_amount(1).fractional.should == BigDecimal("100")
       end
-
-      it "stores in fractional unit as an integer regardless of what is passed into the constructor" do
-        [ Money.new(100), 1.to_money, 1.00.to_money, BigDecimal('1.00').to_money ].each do |m|
-          m.fractional.should == BigDecimal("100")
-          m.fractional.should be_a(BigDecimal)
-        end
-      end
     end
   end
 
@@ -312,7 +298,7 @@ YAML
       def m.amount
         5
       end
-      
+
       m.dollars.should == 5
     end
   end

@@ -123,41 +123,41 @@ describe Money, "parsing" do
 
       # String#to_money(Currency) is equivalent to Money.parse(String, Currency)
       it "parses strings respecting subunit to unit, decimal and thousands separator" do
-        "$0.4".to_money("BAR").should == Money.new(4000, "BAR")
-        "€0,4".to_money("EU4").should == Money.new(4000, "EU4")
+        Money.parse("$0.4", "BAR").should == Money.new(4000, "BAR")
+        Money.parse("€0,4", "EU4").should == Money.new(4000, "EU4")
 
-        "$0.04".to_money("BAR").should == Money.new(400, "BAR")
-        "€0,04".to_money("EU4").should == Money.new(400, "EU4")
+        Money.parse("$0.04", "BAR").should == Money.new(400, "BAR")
+        Money.parse("€0,04", "EU4").should == Money.new(400, "EU4")
 
-        "$0.004".to_money("BAR").should == Money.new(40, "BAR")
-        "€0,004".to_money("EU4").should == Money.new(40, "EU4")
+        Money.parse("$0.004", "BAR").should == Money.new(40, "BAR")
+        Money.parse("€0,004", "EU4").should == Money.new(40, "EU4")
 
-        "$0.0004".to_money("BAR").should == Money.new(4, "BAR")
-        "€0,0004".to_money("EU4").should == Money.new(4, "EU4")
+        Money.parse("$0.0004", "BAR").should == Money.new(4, "BAR")
+        Money.parse("€0,0004", "EU4").should == Money.new(4, "EU4")
 
-        "$0.0024".to_money("BAR").should == Money.new(24, "BAR")
-        "€0,0024".to_money("EU4").should == Money.new(24, "EU4")
+        Money.parse("$0.0024", "BAR").should == Money.new(24, "BAR")
+        Money.parse("€0,0024", "EU4").should == Money.new(24, "EU4")
 
-        "$0.0324".to_money("BAR").should == Money.new(324, "BAR")
-        "€0,0324".to_money("EU4").should == Money.new(324, "EU4")
+        Money.parse("$0.0324", "BAR").should == Money.new(324, "BAR")
+        Money.parse("€0,0324", "EU4").should == Money.new(324, "EU4")
 
-        "$0.5324".to_money("BAR").should == Money.new(5324, "BAR")
-        "€0,5324".to_money("EU4").should == Money.new(5324, "EU4")
+        Money.parse("$0.5324", "BAR").should == Money.new(5324, "BAR")
+        Money.parse("€0,5324", "EU4").should == Money.new(5324, "EU4")
 
-        "$6.5324".to_money("BAR").should == Money.new(65324, "BAR")
-        "€6,5324".to_money("EU4").should == Money.new(65324, "EU4")
+        Money.parse("$6.5324", "BAR").should == Money.new(65324, "BAR")
+        Money.parse("€6,5324", "EU4").should == Money.new(65324, "EU4")
 
-        "$86.5324".to_money("BAR").should == Money.new(865324, "BAR")
-        "€86,5324".to_money("EU4").should == Money.new(865324, "EU4")
+        Money.parse("$86.5324", "BAR").should == Money.new(865324, "BAR")
+        Money.parse("€86,5324", "EU4").should == Money.new(865324, "EU4")
 
-        "$186.5324".to_money("BAR").should == Money.new(1865324, "BAR")
-        "€186,5324".to_money("EU4").should == Money.new(1865324, "EU4")
+        Money.parse("$186.5324", "BAR").should == Money.new(1865324, "BAR")
+        Money.parse("€186,5324", "EU4").should == Money.new(1865324, "EU4")
 
-        "$3,331.0034".to_money("BAR").should == Money.new(33310034, "BAR")
-        "€3.331,0034".to_money("EU4").should == Money.new(33310034, "EU4")
+        Money.parse("$3,331.0034", "BAR").should == Money.new(33310034, "BAR")
+        Money.parse("€3.331,0034", "EU4").should == Money.new(33310034, "EU4")
 
-        "$8,883,331.0034".to_money("BAR").should == Money.new(88833310034, "BAR")
-        "€8.883.331,0034".to_money("EU4").should == Money.new(88833310034, "EU4")
+        Money.parse("$8,883,331.0034", "BAR").should == Money.new(88833310034, "BAR")
+        Money.parse("€8.883.331,0034", "EU4").should == Money.new(88833310034, "EU4")
       end
     end
   end
@@ -326,11 +326,4 @@ describe Money, "parsing" do
       Money.extract_cents('100|0').should == Money.extract_cents('100!0')
     end
   end
-
-  context "given the same inputs to .parse and .from_*" do
-    it "gives the same results" do
-      4.635.to_money.should == "4.635".to_money
-    end
-  end
-
 end
